@@ -2,6 +2,7 @@ import mininet
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.cli import CLI
+from mininet.link import TCLink
 
 
 class SingleTopo(Topo):
@@ -19,7 +20,7 @@ class SingleTopo(Topo):
         self.addLink(self.s2, self.h2, bw = 100)
 
 
-net = Mininet(SingleTopo())        
+net = Mininet(SingleTopo(), link=TCLink)        
 net.start()
 CLI(net)
 net.stop()

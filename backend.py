@@ -3,6 +3,7 @@ import mininet
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.cli import CLI
+from mininet.link import TCLink
 import time
 import subprocess
 from topo import *
@@ -15,7 +16,7 @@ awesome_logger.debug("AwesomeTopo started!")
 
 class BottleneckBackend(object):
     def __init__(self, topo: AwesomeBottleneckTopo, debug=False) -> None:
-        self.net = Mininet(topo)
+        self.net = Mininet(topo, link=TCLink)
         self.clients = self.net.topo.clients
         self.servers = self.net.topo.servers
 
@@ -42,14 +43,10 @@ class BottleneckBackend(object):
                     f"iperf -s -e -u -i 1 > /tmp/awesome_udp_{server}.log &")
 
         self.send_tcp_package()
-        time.sleep(10)
-        self.send_udp_datagram()
         CLI(self.net)
-        self.send_tcp_package()
-        self.send_tcp_package()
         self.clean()
 
-    def send_tcp_package(self, t=100, mean="20M", deviation="2M", cong_alg=None):
+    def send_tcp_package(self, t=50, mean="20M", deviation="2M", cong_alg=None):
         """Send tcp package from tcp client to tcp server.
 
         TCP Client iperf output table:
@@ -83,6 +80,16 @@ class BottleneckBackend(object):
         for client in self.clients:
             self.net.get(client).cmd(
                 f"iperf -c {self.net.get(self.servers[-1]).IP()} -u -i 1 -t {t} -e > /tmp/awesome_udp_{client}.log &")
+
+    def take_measurements(self, cong_alg=None):
+        
+        subprocess.run("sudo rm -rf /tmp/*.log", shell=True)
+        self.send_tcp_package(cong_alg=cong_alg)
+        
+        for client in self.clients:
+            with open(f"/tmp/awesome_tcp_{client}") as f:
+                # TODO(gpl): 
+                ...
 
     def clean(self):
         if not self.debug:

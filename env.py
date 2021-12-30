@@ -44,18 +44,21 @@ class BottleneckEnv(gym.Env):
         """
         # NetPwr, Rtry,
         # NetPwr: Network Power(Throuput / RTT),
-        
+        self.take_action(action)
+        reward = self.get_reward()
+        observation = self.get_state()
 
-        return 
+        return observation, reward, self.done, self.info
 
     def take_action(self, action):
         ...
+        # TODO(lrk): adjust beta
 
     def reset(self):
-        return super().reset()
+        ...
 
     def get_state(self):
-        ...
+        ... 
 
     def get_reward(self):
         ...

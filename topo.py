@@ -20,10 +20,10 @@ class AwesomeBottleneckTopo(Topo):
         self.s1 = self.addSwitch('awesome-s1')
         self.s2 = self.addSwitch('awesome-s2')
 
-        linkops = dict(bw='35M', delay='20ms',
+        linkops = dict(bw=35, delay='5ms',
                        max_queue_size=1000, use_htb=True)
         self.addLink(self.s1, self.s2, **linkops)
-
+        print("clients:", self.clients)
         for client in self.clients:
             print(client)
             linkops = dict(bw=40, max_queue_size=1000, use_htb=True)
