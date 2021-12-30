@@ -49,7 +49,7 @@ class BottleneckBackend(object):
         self.send_tcp_package()
         self.clean()
 
-    def send_tcp_package(self, t=100, mean="20M", deviation="2M"):
+    def send_tcp_package(self, t=10, mean="20M", deviation="2M"):
         """Send tcp package from tcp client to tcp server.
 
         TCP Client iperf output table:
@@ -68,7 +68,6 @@ class BottleneckBackend(object):
                 #     f"iperf -c {self.net.get(server).IP()} -i 1 -b {mean},{deviation} -e -t {t} > /tmp/awesome_tcp_{client}.log &")
                 self.net.get(client).cmd(
                     f"iperf -c {self.net.get(server).IP()} -i 1 -b {mean},{deviation} -e -t {t} &")
-
 
     def send_udp_datagram(self, t=10):
         """Send udp datagram from udp client to udp server.

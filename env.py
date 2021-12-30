@@ -3,8 +3,12 @@ from gym import spaces
 from backend import *
 import numpy as np
 import logging
+import os
 
-logging.basicConfig(format='%(asctime)s %(lavelname)s %(message)s' ,filename="awesome-env.log", encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(lavelname)s %(message)s',
+                    filename="awesome-env.log", encoding='utf-8', level=logging.INFO)
+
+beta_file = "/sys/module/tcp_lgd/parameters/beta"
 
 
 class BottleneckEnv(gym.Env):
@@ -19,16 +23,17 @@ class BottleneckEnv(gym.Env):
 
         self.backend = BottleneckBackend(AwesomeBottleneckTopo())
 
-
         # (BW, RTT, Rtry)
         # Rtry: total number of TCP retries
         observation_low = np.array([0, 0, 0])
-        observation_high = np.array([bw_mean + bw_deviation, self.MAX_RTT, self.MAX_RETRY])
-        self.observation_space = spaces.Box(observation_low, observation_high, dtype=np.float32)
-        
+        observation_high = np.array(
+            [bw_mean + bw_deviation, self.MAX_RTT, self.MAX_RETRY])
+        self.observation_space = spaces.Box(
+            observation_low, observation_high, dtype=np.float32)
+
         # TODO(gpl): param
         self.action_space = spaces.Discrete(self.ACTION_LENGTH)
-        
+
         self.done = False
         self.info = {}
 
@@ -44,12 +49,18 @@ class BottleneckEnv(gym.Env):
         """
         # NetPwr, Rtry,
         # NetPwr: Network Power(Throuput / RTT),
-        
 
-        return 
+        return
 
     def take_action(self, action):
-        ...
+        """
+        change the beta in congestion control process
+        """
+        if os.access(beta_file, os.R_OK) == False:
+            print(f"take action failed! {beta_file} is not writable!\n")
+        f = open(beta_file, 'w', encoding="utf-8")
+        f.write(str(action))
+        f.close()
 
     def reset(self):
         return super().reset()
