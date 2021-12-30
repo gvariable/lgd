@@ -20,6 +20,8 @@ class BottleneckBackend(object):
         self.clients = self.net.topo.clients
         self.servers = self.net.topo.servers
 
+        self.bws, self.rtrys, self.cwnds, self.rtts, self.netpwrs = [], [], [], [], []
+
         self.debug = debug
         self.net.start()
 
@@ -42,7 +44,7 @@ class BottleneckBackend(object):
                 self.net.get(server).cmd(
                     f"iperf -s -e -u -i 1 > /tmp/awesome_udp_{server}.log &")
 
-        self.send_tcp_package()
+        self.take_measurements()
         CLI(self.net)
         self.clean()
 
@@ -85,11 +87,23 @@ class BottleneckBackend(object):
         
         subprocess.run("sudo rm -rf /tmp/*.log", shell=True)
         self.send_tcp_package(cong_alg=cong_alg)
+        logging.debug("sleeping 5 secs for waiting tcp transmitting")
+        time.sleep(5)
+
+
+        for client in self.clients[:-1]:
+            with open(f"/tmp/awesome_tcp_{client}.log") as f:
+                for line in f.readlines():
+                    if "bits/sec" in line:
+                        line = line.replace("-", ' ')
+                        line = line.replace("/", ' ')
+                        fields = line.strip().split()
+                        self.bws.append(float(fields[7]))
+                        self.rtrys.append(float(fields[12]))
+                        self.cwnds.append(int(fields[13][:-1])) # K
+                        self.rtts.append(int(fields[14]))
+                        self.netpwrs.append(float(fields[-1]))
         
-        for client in self.clients:
-            with open(f"/tmp/awesome_tcp_{client}") as f:
-                # TODO(gpl): 
-                ...
 
     def clean(self):
         if not self.debug:
