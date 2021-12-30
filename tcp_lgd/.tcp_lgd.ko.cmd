@@ -1,0 +1,1 @@
+cmd_/home/mininet/lgd_program/lgd/tcp_lgd/tcp_lgd.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000  --build-id  -T ./scripts/module-common.lds -o /home/mininet/lgd_program/lgd/tcp_lgd/tcp_lgd.ko /home/mininet/lgd_program/lgd/tcp_lgd/tcp_lgd.o /home/mininet/lgd_program/lgd/tcp_lgd/tcp_lgd.mod.o;  true
