@@ -58,6 +58,7 @@ class BottleneckEnv(gym.Env):
         """
         if os.access(beta_file, os.R_OK) == False:
             print(f"take action failed! {beta_file} is not writable!\n")
+            return False
         f = open(beta_file, 'w', encoding="utf-8")
         f.write(str(action))
         f.close()
