@@ -8,14 +8,13 @@ import os
 logging.basicConfig(format='%(asctime)s %(lavelname)s %(message)s',
                     filename="awesome-env.log", encoding='utf-8', level=logging.INFO)
 
-beta_file = "/sys/module/tcp_lgd/parameters/beta"
-
 
 class BottleneckEnv(gym.Env):
     MAX_RETRY = 1000
     MAX_RTT = 10000
     ACTION_LENGTH = 10
     ACTIONS = list(range(ACTION_LENGTH))
+    beta_file = "/sys/module/tcp_lgd/parameters/beta"
 
     def __init__(self, bw_mean, bw_deviation) -> None:
         self.__version__ = "0.1.0"
@@ -56,10 +55,10 @@ class BottleneckEnv(gym.Env):
         """
         change the beta in congestion control process
         """
-        if os.access(beta_file, os.R_OK) == False:
-            print(f"take action failed! {beta_file} is not writable!\n")
+        if os.access(self.beta_file, os.R_OK) == False:
+            print(f"take action failed! {self.beta_file} is not writable!\n")
             return False
-        f = open(beta_file, 'w', encoding="utf-8")
+        f = open(self.beta_file, 'w', encoding="utf-8")
         f.write(str(action))
         f.close()
 
