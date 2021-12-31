@@ -1,8 +1,9 @@
 import gym
 from gym import spaces
-from backend import *
+from gym_lgd.envs.backend import *
 import numpy as np
 import logging
+import matplotlib.pyplot as plt
 
 logging.basicConfig(format='%(asctime)s %(lavelname)s %(message)s' ,filename="awesome-env.log", encoding='utf-8', level=logging.INFO)
 
@@ -12,13 +13,14 @@ class BottleneckEnv(gym.Env):
     MAX_RTT = 10000
     ACTION_LENGTH = 10
     ACTIONS = list(range(ACTION_LENGTH))
+    MAX_TICKS = 30
 
     def __init__(self, bw_mean, bw_deviation) -> None:
         self.__version__ = "0.1.0"
         logging.info("LGD - Version {}".format(self.__version__))
 
         self.backend = BottleneckBackend(AwesomeBottleneckTopo())
-
+        self.ticks = 0 
 
         # (BW, RTT, Rtry)
         # Rtry: total number of TCP retries
@@ -31,6 +33,7 @@ class BottleneckEnv(gym.Env):
         
         self.done = False
         self.info = {}
+
 
     def step(self, action):
         """The agent takes a step in the environment.
@@ -45,12 +48,14 @@ class BottleneckEnv(gym.Env):
         # NetPwr, Rtry,
         # NetPwr: Network Power(Throuput / RTT),
         self.take_action(action)
-        reward = self.get_reward()
         observation = self.get_state()
+        reward = self.get_reward()
 
         return observation, reward, self.done, self.info
 
     def take_action(self, action):
+        
+        self.ticks += 1
         ...
         # TODO(lrk): adjust beta
 
@@ -58,10 +63,26 @@ class BottleneckEnv(gym.Env):
         ...
 
     def get_state(self):
-        ... 
+
+        self.backend.take_measurements()
+        return (self.backend.bws[-2], self.backend.rtts[-2], self.backend.rtrys[-2])
 
     def get_reward(self):
-        ...
+        return self.backend.netpwrs[-2]
+
+    def plot(self):
+        measurements = ["bws", "rtrys", "rtts", "cwnds", "netpwrs"]
+        for idx, measurement in enumerate(measurements):
+
+            plt.figure(idx + 1)
+            plt.plot(getattr(self.backend, measurement))
+            plt.title(f"Measurements of {measurement.upper()}")
+            plt.ylabel(f"{measurement.upper()}")
+            plt.xlabel("t")
+            plt.savefig(f"figs/{measurement}.png")
+
+
+
 
     def clean(self):
         self.backend.clean()
@@ -69,3 +90,5 @@ class BottleneckEnv(gym.Env):
 
 class LongFatEnv(gym.Env):
     ...
+
+

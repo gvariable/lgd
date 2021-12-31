@@ -6,7 +6,7 @@ from mininet.cli import CLI
 from mininet.link import TCLink
 import time
 import subprocess
-from topo import *
+from gym_lgd.envs.topo import *
 
 
 awesome_logger = logging.getLogger('awesomework')
@@ -15,7 +15,7 @@ awesome_logger.debug("AwesomeTopo started!")
 
 
 class BottleneckBackend(object):
-    def __init__(self, topo: AwesomeBottleneckTopo, debug=False) -> None:
+    def __init__(self, topo: AwesomeBottleneckTopo=AwesomeBottleneckTopo(), debug=False) -> None:
         self.net = Mininet(topo, link=TCLink)
         self.clients = self.net.topo.clients
         self.servers = self.net.topo.servers
