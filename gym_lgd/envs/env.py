@@ -4,8 +4,10 @@ from gym_lgd.envs.backend import *
 import numpy as np
 import logging
 import matplotlib.pyplot as plt
+import os
 
-logging.basicConfig(format='%(asctime)s %(lavelname)s %(message)s' ,filename="awesome-env.log", encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(lavelname)s %(message)s',
+                    filename="awesome-env.log", encoding='utf-8', level=logging.INFO)
 
 
 class BottleneckEnv(gym.Env):
@@ -13,7 +15,11 @@ class BottleneckEnv(gym.Env):
     MAX_RTT = 10000
     ACTION_LENGTH = 10
     ACTIONS = list(range(ACTION_LENGTH))
+
     MAX_TICKS = 30
+
+    beta_file = "/sys/module/tcp_lgd/parameters/beta"
+
 
     def __init__(self, bw_mean, bw_deviation) -> None:
         self.__version__ = "0.1.0"
@@ -22,15 +28,18 @@ class BottleneckEnv(gym.Env):
         self.backend = BottleneckBackend(AwesomeBottleneckTopo())
         self.ticks = 0 
 
+
         # (BW, RTT, Rtry)
         # Rtry: total number of TCP retries
         observation_low = np.array([0, 0, 0])
-        observation_high = np.array([bw_mean + bw_deviation, self.MAX_RTT, self.MAX_RETRY])
-        self.observation_space = spaces.Box(observation_low, observation_high, dtype=np.float32)
-        
+        observation_high = np.array(
+            [bw_mean + bw_deviation, self.MAX_RTT, self.MAX_RETRY])
+        self.observation_space = spaces.Box(
+            observation_low, observation_high, dtype=np.float32)
+
         # TODO(gpl): param
         self.action_space = spaces.Discrete(self.ACTION_LENGTH)
-        
+
         self.done = False
         self.info = {}
 
@@ -58,6 +67,19 @@ class BottleneckEnv(gym.Env):
         self.ticks += 1
         ...
         # TODO(lrk): adjust beta
+
+        return
+
+    def take_action(self, action):
+        """
+        change the beta in congestion control process
+        """
+        if os.access(self.beta_file, os.R_OK) == False:
+            print(f"take action failed! {self.beta_file} is not writable!\n")
+            return False
+        f = open(self.beta_file, 'w', encoding="utf-8")
+        f.write(str(action))
+        f.close()
 
     def reset(self):
         ...
